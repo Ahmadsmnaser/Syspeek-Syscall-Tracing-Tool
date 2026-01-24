@@ -5,13 +5,13 @@
 typedef unsigned long syspeek_word_t; // Word type for syscall arguments and return values
 typedef int syspeek_pid_t;            // Process ID type
 
-enum EventPhase
+typedef enum EventPhase
 {
     EVENT_PHASE_ENTRY = 0,
     EVENT_PHASE_EXIT = 1
-};
+} EventPhase;
 
-struct SyscallEvent
+typedef struct SyscallEvent
 {
     syspeek_pid_t pid;        // Process ID
     int syscall_num;          // Syscall number
@@ -21,4 +21,4 @@ struct SyscallEvent
     syspeek_word_t err;       // Error code
     int has_error;            // Flag indicating if there was an error
     EventPhase phase;         // 0 for entry, 1 for exit
-};
+} SyscallEvent;
