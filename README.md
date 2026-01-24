@@ -28,3 +28,4 @@ and to build a clean, maintainable mini tool along the way.
 - `DESIGN.md` → internal architecture and decisions
 - `ROADMAP.md` → milestones and progress plan
 - `docs/` → examples, diagrams, design decisions
+# Syspeek-Syscall-Tracing-Tool
