@@ -1,31 +1,94 @@
-# syspeek 👁️🐧
-A small strace-like syscall tracing tool for Linux — built for learning low-level OS concepts.
+```markdown
+# 🕵️ syspeek — Lightweight Linux Syscall Tracer
 
-## Goal 🎯
-syspeek is a learning-first project.
-The main goal is to deeply understand how syscall tracing works (process tracing, registers, syscalls, signals),
-and to build a clean, maintainable mini tool along the way.
+`syspeek` is a lightweight Linux system call tracer written in **C**, built on top of **ptrace**.  
+It is inspired by tools like `strace`, but designed to be **simpler, educational, and extensible**, with a strong focus on **low-level systems programming**.
 
-## What it does (MVP)
-- Launches a target program and traces its syscalls
-- Prints syscall name + arguments (raw first, decoded later) + return value
-- Provides readable output similar in spirit to `strace` (but smaller)
+This project demonstrates hands-on understanding of:
+- Linux system calls
+- Process tracing and control
+- Register-level ABI details (x86_64)
+- Event-driven tracing design
 
-## Planned Features
-- Syscall name mapping (number → name)
-- Basic decoders for common syscalls (open/read/write/execve/mmap/close)
-- Filters (trace only selected syscalls)
-- Summary mode (counts per syscall)
-- Timing per syscall (optional)
+---
 
-## Non-goals (for now)
-- Full `strace` parity
-- Deep decoding of every syscall structure
-- Complex attach scenarios (later milestone)
+## ✨ Features
 
-## Repo Structure
-- `SPEC.md`  → user-visible behavior (CLI/output/requirements)
-- `DESIGN.md` → internal architecture and decisions
-- `ROADMAP.md` → milestones and progress plan
-- `docs/` → examples, diagrams, design decisions
-# Syspeek-Syscall-Tracing-Tool
+- 🔍 Trace Linux **system calls** (entry & exit)
+- 🧠 Capture:
+  - syscall number
+  - syscall name (when known)
+  - up to 6 arguments
+  - return value
+  - errno on failure
+- 🧩 Architecture-aware syscall mapping (**x86_64**)
+- 🪶 Lightweight (no external dependencies)
+- 🧪 Works with real programs (`read`, `write`, `openat`, `execve`, `malloc`, etc.)
+
+---
+
+### What each test covers
+
+| Test              | Purpose               | Expected syscalls (at least) |
+| ----------------- | --------------------- | ---------------------------- |
+| `t_write`         | Write to stdout       | `write`                      |
+| `open_fail`       | Failing file open     | `openat` (errno=2/ENOENT)    |
+| `open_read_close` | Open + read + close   | `openat`, `read`, `close`    |
+| `malloc_activity` | Heap/mmap activity    | `brk` and/or `mmap`          |
+| `execve`          | Execute a new program | `execve`                     |
+
+---
+
+## ⚙️ Syscall Mapping
+
+`syspeek` includes a small syscall table for **x86_64**:
+
+* Known syscalls are printed by name (e.g., `write`, `openat`, `execve`)
+* Unknown syscalls are printed as: `syscall(<num>)`
+
+The table is intentionally minimal and easy to extend.
+
+---
+
+## 🚧 Known Limitations
+
+* x86_64 only
+* No advanced decoding for pointers/strings/flags (yet)
+* No follow-forks/threads (yet)
+* Plain text output (no colors / JSON mode)
+
+---
+
+## 🛣️ Optional Future Improvements
+
+* Pretty printing (hex pointers, strings, flags)
+* Filtering by syscall name/number
+* JSON output mode
+* Follow fork/clone/threads
+* Support for additional architectures
+* Summary statistics (counts, error rate)
+
+> The project is functionally complete for educational and portfolio purposes — further work is optional.
+
+---
+
+## 🎓 Why This Project Matters
+
+This project demonstrates real systems-level skills:
+
+* Linux syscall mechanics
+* ptrace-based process control
+* register-level ABI reasoning
+* kernel ↔ userspace interaction
+* robust error handling around exec and signals
+
+---
+
+## 👤 Author
+
+**Ahmad Naser**
+B.Sc. Computer Science
+Low-Level & Systems Programming Enthusiast
+
+```
+```
