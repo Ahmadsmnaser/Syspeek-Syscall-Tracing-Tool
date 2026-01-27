@@ -5,7 +5,7 @@
 // Executes open, read, and close syscalls on a test file.
 int main()
 {
-    const char* filename = "testfile.txt";
+    const char* filename = "./testfile.txt";
     char buffer[100];
     ssize_t bytesRead;
 
