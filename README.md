@@ -1,4 +1,3 @@
-```markdown
 # 🕵️ syspeek — Lightweight Linux Syscall Tracer
 
 `syspeek` is a lightweight Linux system call tracer written in **C**, built on top of **ptrace**.  
