@@ -69,3 +69,76 @@ int format_line(const struct SyscallEvent *ev, char *out, size_t out_sz){
         return 0;
     }
 }
+
+// Add these table helpers in formatter.c
+
+static const char *resolve_syscall_name(const struct SyscallEvent *ev, char *tmp, size_t tmp_sz)
+{
+    const char *name = ev->syscall_name;
+
+    if (name == NULL)
+    {
+        name = syspeek_syscall_name(ev->syscall_num);
+    }
+
+    // Handle unknown syscall names (your table might return "unknown_syscall")
+    if (name == NULL || strcmp(name, "unknown_syscall") == 0)
+    {
+        snprintf(tmp, tmp_sz, "syscall(%d)", ev->syscall_num);
+        return tmp;
+    }
+
+    return name;
+}
+
+int format_table_header(char *out, size_t out_sz)
+{
+    if (out == NULL || out_sz == 0)
+        return -1;
+
+    // Fixed-width columns (terminal-friendly)
+    // PID | SYSCALL | ARG0 | ARG1 | ARG2 | RET | ERR
+    int n = snprintf(out, out_sz,
+                     "%-7s %-16s %-18s %-18s %-18s %-18s %-6s",
+                     "PID", "SYSCALL", "ARG0", "ARG1", "ARG2", "RET", "ERR");
+    return (n < 0 || (size_t)n >= out_sz) ? -1 : 0;
+}
+
+int format_table_row(const struct SyscallEvent *ev, char *out, size_t out_sz)
+{
+    if (ev == NULL || out == NULL || out_sz == 0)
+        return -1;
+
+    char tmp[32];
+    const char *name = resolve_syscall_name(ev, tmp, sizeof(tmp));
+
+    // Print first 3 args only (minimal + readable)
+    // Print args/ret in HEX style (looks cleaner for pointers)
+    // ERR is "-" if no error, otherwise number
+    if (ev->has_error)
+    {
+        int n = snprintf(out, out_sz,
+                         "%-7d %-16s 0x%016lx 0x%016lx 0x%016lx 0x%016lx %-6lu",
+                         ev->pid,
+                         name,
+                         (unsigned long)ev->args[0],
+                         (unsigned long)ev->args[1],
+                         (unsigned long)ev->args[2],
+                         (unsigned long)ev->ret,
+                         (unsigned long)ev->err);
+        return (n < 0 || (size_t)n >= out_sz) ? -1 : 0;
+    }
+    else
+    {
+        int n = snprintf(out, out_sz,
+                         "%-7d %-16s 0x%016lx 0x%016lx 0x%016lx 0x%016lx %-6s",
+                         ev->pid,
+                         name,
+                         (unsigned long)ev->args[0],
+                         (unsigned long)ev->args[1],
+                         (unsigned long)ev->args[2],
+                         (unsigned long)ev->ret,
+                         "-");
+        return (n < 0 || (size_t)n >= out_sz) ? -1 : 0;
+    }
+}

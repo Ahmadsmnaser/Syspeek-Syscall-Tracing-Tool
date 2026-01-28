@@ -26,37 +26,50 @@ static void on_syscall_event(const struct SyscallEvent *ev, void *user)
 {
     (void)user;
 
-    if (ev->syscall_name == NULL)
+    // Print only EXIT events (cleaner, one row per syscall)
+    if (ev->phase != EVENT_PHASE_EXIT)
     {
-        const char *name = syspeek_syscall_name(ev->syscall_num);
-
-        struct SyscallEvent tmp = *ev;
-        tmp.syscall_name = name;
-
-        char line[512];
-        if (format_line(&tmp, line, sizeof(line)) == 0)
-        {
-            puts(line);
-        }
-        else
-        {
-            // formatter failed; print minimal fallback
-            printf("[%d] syscall(%d) = %lu\n",
-                   tmp.pid, tmp.syscall_num, (unsigned long)tmp.ret);
-        }
         return;
     }
 
-    // Normal path: syscall_name already present
+    static int header_printed = 0;
+    static unsigned long printed = 0;
+    static unsigned long errors = 0;
+
     char line[512];
-    if (format_line(ev, line, sizeof(line)) == 0)
+
+    // Print table header once
+    if (!header_printed)
+    {
+        if (format_table_header(line, sizeof(line)) == 0)
+        {
+            puts(line);
+        }
+        header_printed = 1;
+    }
+
+    // Print one row
+    if (format_table_row(ev, line, sizeof(line)) == 0)
     {
         puts(line);
+        printed++;
+        if (ev->has_error)
+            errors++;
     }
     else
     {
-        printf("[%d] %s(...) = %lu\n",
-               ev->pid, ev->syscall_name, (unsigned long)ev->ret);
+        // Minimal fallback (should rarely happen)
+        printf("%-7d %-16s 0x%016lx 0x%016lx 0x%016lx 0x%016lx %-6s\n",
+               ev->pid,
+               "syscall(?)",
+               (unsigned long)ev->args[0],
+               (unsigned long)ev->args[1],
+               (unsigned long)ev->args[2],
+               (unsigned long)ev->ret,
+               ev->has_error ? "ERR" : "-");
+        printed++;
+        if (ev->has_error)
+            errors++;
     }
 }
 
@@ -65,7 +78,7 @@ int main(int argc, char *argv[]){
         printf("Usage: %s <program> [args...]\n", argv[0]);
         return 1;
     }
-    printf("Syspeek started with %d arguments.\n", argc);
+    //printf("Syspeek started with %d arguments.\n", argc);
 
     const char *target_program = argv[1];
     char *const *target_argv = &argv[1];
